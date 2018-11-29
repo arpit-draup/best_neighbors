@@ -16,9 +16,12 @@ that can be copied to the `plugin` directory of your Neo4j instance.
 
 Restart your Neo4j Server. A new Stored Procedure is available:
 
-    com.maxdemarzi.best_neighbors(Node, max neighbors to return, max depth to traverse)
+    com.maxdemarzi.best_neighbors(Node, max neighbors to return, max depth to traverse,direction)
     
+    Direction : 
+            Outgoing: 0
+            Incoming: 1
     
     MATCH (n:job {name:'Marice'}) WITH n
-    CALL com.maxdemarzi.best_neighbors(n, 50, 4) yield nodes, cost
+    CALL com.maxdemarzi.best_neighbors(n, 50, 4,0) yield nodes, cost
     RETURN [x in nodes| x.name], cost
