@@ -30,11 +30,11 @@ public class BestNeighborsTest {
 
             // When I use the procedure
             StatementResult result = session.run( "MATCH (n:Node {name:$name}) WITH n\n" +
-                    "CALL com.maxdemarzi.best_neighbors(n, 25, 5) yield nodes, cost\n" +
+                    "CALL com.maxdemarzi.best_neighbors(n, 25, 5,1) yield nodes, cost\n" +
                     "RETURN [x in nodes| x.name], cost", parameters( "name", '1' ) );
 
             // Then I should get what I expect
-            assertThat( result.list().size(), equalTo( 6 ) );
+            assertThat( result.list().size(), equalTo(0) );
         }
     }
 

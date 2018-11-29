@@ -30,12 +30,16 @@ public class Procedures {
 
 
     @Procedure(name = "com.maxdemarzi.best_neighbors", mode = Mode.READ)
-    @Description("CALL com.maxdemarzi.best_neighbors(Node start, Number n, Number hops)")
-    public Stream<SimplifiedWeightedPathResult> bestNeighbors(@Name("start") Node start, @Name("n") Number n, @Name("hops") Number hops) throws IOException {
+    @Description("CALL com.maxdemarzi.best_neighbors(Node start, Number n, Number hops,Number direction)")
+    public Stream<SimplifiedWeightedPathResult> bestNeighbors(@Name("start") Node start, @Name("n") Number n, @Name("hops") Number hops,@Name("direction") Number direction) throws IOException {
         HashMap<Node, Pair<ArrayList<Node>, Double>> nodePathMap = new HashMap<>();
 
         // First Hop
-        for(Relationship r : start.getRelationships(RelationshipTypes.to)) {
+        Direction DEFAULT_DIRECTION = Direction.OUTGOING;
+        if(direction.intValue() == 1)
+            DEFAULT_DIRECTION = Direction.INCOMING;
+
+        for(Relationship r : start.getRelationships(DEFAULT_DIRECTION,RelationshipTypes.to)) {
             Node next = r.getOtherNode(start);
             Double weight = nodePathMap.getOrDefault(next, DUMMY_PAIR).other();
             Double cost = ((Number)r.getProperty("count", 0.0)).doubleValue();
@@ -45,7 +49,7 @@ public class Procedures {
         }
 
         for(int i = 1; i < hops.intValue(); i++) {
-            nextHop(n, nodePathMap);
+            nextHop(n, nodePathMap,DEFAULT_DIRECTION);
         }
 
         ArrayList<Entry<Node, Pair<ArrayList<Node>, Double>>> list = new ArrayList<>(nodePathMap.entrySet());
@@ -54,7 +58,7 @@ public class Procedures {
         return list.subList(0, Math.min(list.size(), n.intValue())).stream().map(x -> new SimplifiedWeightedPathResult(x.getValue().first(), x.getValue().other()));
     }
 
-    private void nextHop(@Name("n") Number n, HashMap<Node, Pair<ArrayList<Node>, Double>> nodePathMap) {
+    private void nextHop(@Name("n") Number n, HashMap<Node, Pair<ArrayList<Node>, Double>> nodePathMap,Direction DEFAULT_DIRECTION) {
         if(nodePathMap.size() < n.intValue()) {
             ArrayList<Entry<Node, Pair<ArrayList<Node>, Double>>> list = new ArrayList<>(nodePathMap.entrySet());
 
@@ -62,7 +66,7 @@ public class Procedures {
                 ArrayList<Node> nodes = entry.getValue().first();
                 Double cost = entry.getValue().other();
                 Node from = nodes.get(nodes.size() - 1);
-                for(Relationship r : from.getRelationships(RelationshipTypes.to)) {
+                for(Relationship r : from.getRelationships(DEFAULT_DIRECTION,RelationshipTypes.to)) {
                     Node next = r.getOtherNode(from);
                     Double nextCost = ((Number)r.getProperty("count", 0.0)).doubleValue();
                     if (nodePathMap.containsKey(next)) {
